@@ -1,5 +1,6 @@
 package com.example.bike_registration.Service;
 
+import com.example.bike_registration.Exception.UserAlreadyExistException;
 import com.example.bike_registration.Model.Users;
 import com.example.bike_registration.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,10 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     }
 
     @Override
-    public Users addUser(Users users) {
+    public Users addUser(Users users) throws UserAlreadyExistException {
+        if(checkIfUserExist(users.getUsername())){
+            throw new UserAlreadyExistException("User already exists for this email");
+        }
 
         users.setRole("USER");
         users.setPassword(passwordEncoder.encode(users.getPassword()));
@@ -64,9 +68,7 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     @Override
     public Users updateUser(String id, Users users){
         if (userRepository.findById(id).isPresent()) {
-            System.out.println("This is for updating user details : " );
             Users get_user = userRepository.findById(id).get();
-
             get_user.setId(id);
             get_user.setName(users.getName());
             get_user.setUsername(users.getUsername());
@@ -86,5 +88,10 @@ public class UserService implements UserServiceInterface, UserDetailsService {
     @Override
     public void deleteUserById(UUID id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean checkIfUserExist(String email){
+       return userRepository.findByUsername(email) !=null ? true : false;
     }
 }

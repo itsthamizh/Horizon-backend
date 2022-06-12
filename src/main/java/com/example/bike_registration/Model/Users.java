@@ -34,15 +34,15 @@ public class Users {
     @Column(name = "phone_no")
     private String phone_no;
 
+
+    private String status;
+
+
     private String permissions = "";
 
     public Users(){}
 
-//    @JsonProperty
-    public Users(@JsonProperty("id") String id , @JsonProperty("active") int active,
-                 @JsonProperty("name") String name, @JsonProperty("username") String username,
-                 @JsonProperty("password") String password, @JsonProperty("role") String role,
-                 @JsonProperty("phone_no") String phone_no, String permissions) {
+    public Users(String id , int active, String status, String name, String username, String password, String role, String phone_no, String permissions) {
         this.id = id;
         this.active = active;
         this.name = name;
@@ -51,6 +51,7 @@ public class Users {
         this.role = role;
         this.phone_no = phone_no;
         this.permissions = permissions;
+        this.status = status;
     }
 
     public String getId() {
@@ -128,4 +129,11 @@ public class Users {
         return new ArrayList<>();
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
