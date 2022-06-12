@@ -41,6 +41,14 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+<!-- 		Test dependency -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+			<scope>test</scope>
+		</dependency>
+
 <!--		JWT dependency	-->
 		<dependency>
 			<groupId>com.auth0</groupId>
