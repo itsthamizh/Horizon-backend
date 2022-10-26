@@ -1,13 +1,18 @@
 package com.example.bike_registration.Service;
 
+import com.example.bike_registration.CommonParams.LoginRequest;
 import com.example.bike_registration.Exception.UserAlreadyExistException;
 import com.example.bike_registration.Model.Users;
 import com.example.bike_registration.Repository.UserRepository;
+import com.example.bike_registration.security.JwtAuthenticationFilter;
+import com.example.bike_registration.security.JwtProvider;
+import com.example.bike_registration.security.UserPrincipalDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,34 +26,26 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
-public class UserService implements UserServiceInterface, UserDetailsService {
+public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserPrincipalDetailsService userPrincipalDetailsService;
+    @Autowired
+    private LoginService loginService;
+
+    @Autowired
+    JwtProvider jwtProvider;
+
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final PasswordEncoder passwordEncoder;
 
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Users user = userRepository.findByUsername(email);
-        if (user == null){
-            log.error("User not found in the database ");
-            throw new UsernameNotFoundException("User Not found in the databases");
-        }
-        else{
-            log.info("User found in the database: {}", email);
-        }
-        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
-    }
-
-    @Override
     public List<Users> findAll() {
         return userRepository.findAll();
     }
 
-    @Override
     public Users addUser(Users users) throws UserAlreadyExistException {
         if(checkIfUserExist(users.getUsername())){
             throw new UserAlreadyExistException("User already exists for this email");
@@ -60,12 +57,10 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         return users;
     }
 
-    @Override
     public Optional<Users> findById(String id) {
         return userRepository.findById(id);
     }
 
-    @Override
     public Users updateUser(String id, Users users){
         if (userRepository.findById(id).isPresent()) {
             Users get_user = userRepository.findById(id).get();
@@ -85,13 +80,31 @@ public class UserService implements UserServiceInterface, UserDetailsService {
         }
     }
 
-    @Override
     public void deleteUserById(UUID id) {
         userRepository.deleteById(id);
     }
 
-    @Override
+
+    public String loginUser(LoginRequest loginRequest) throws UsernameNotFoundException{
+
+        UserDetails user
+                = loginService.loadUserByUsername(loginRequest.getUsername());
+
+        if (user.getUsername() != null && user.getPassword() != null){
+            String token =  jwtProvider.generateToken(user);
+            return token;
+        }
+        else {
+            throw new UsernameNotFoundException("No user found");
+        }
+    }
+
+
     public boolean checkIfUserExist(String email){
        return userRepository.findByUsername(email) !=null ? true : false;
+    }
+
+    public String encodePassword(String password){
+        return passwordEncoder.encode(password);
     }
 }
